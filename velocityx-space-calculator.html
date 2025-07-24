@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VelocityX - Space Mission Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #00d4ff;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #00d4ff, #ffffff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .section h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #b3b3b3;
+            font-weight: 500;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+            background: linear-gradient(45deg, #0099cc, #00d4ff);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .visualization {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: radial-gradient(ellipse at center, #001122 0%, #000000 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        #orbitCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #orbitCanvas:active {
+            cursor: grabbing;
+        }
+
+        .results {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #b3b3b3;
+            font-weight: 500;
+        }
+
+        .result-value {
+            color: #00d4ff;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #00d4ff;
+            font-size: 1.2rem;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 212, 255, 0.3);
+            border-top: 4px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <header class="header">
+        <h1>VelocityX</h1>
+    </header>
+
+    <div class="container">
+        <div class="control-panel">
+            <div class="section">
+                <h3>Mission Parameters</h3>
+                <div class="input-group">
+                    <label for="centralBody">Central Body</label>
+                    <select id="centralBody">
+                        <option value="earth">Earth</option>
+                        <option value="mars">Mars</option>
+                        <option value="moon">Moon</option>
+                        <option value="sun">Sun</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="missionType">Mission Type</label>
+                    <select id="missionType">
+                        <option value="leo">Low Earth Orbit (LEO)</option>
+                        <option value="geo">Geostationary Orbit (GEO)</option>
+                        <option value="lunar">Lunar Transfer</option>
+                        <option value="interplanetary">Interplanetary</option>
+                        <option value="custom">Custom Orbit</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Orbital Elements</h3>
+                <div class="input-group">
+                    <label for="altitude">Altitude (km)</label>
+                    <input type="number" id="altitude" value="400" min="200" max="36000">
+                </div>
+                <div class="input-group">
+                    <label for="inclination">Inclination (degrees)</label>
+                    <input type="number" id="inclination" value="51.6" min="0" max="180" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label for="eccentricity">Eccentricity</label>
+                    <input type="number" id="eccentricity" value="0.0" min="0" max="0.99" step="0.01">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Spacecraft Parameters</h3>
+                <div class="input-group">
+                    <label for="mass">Spacecraft Mass (kg)</label>
+                    <input type="number" id="mass" value="1000" min="1" max="100000">
+                </div>
+                <div class="input-group">
+                    <label for="thrust">Thrust (N)</label>
+                    <input type="number" id="thrust" value="500" min="1" max="10000">
+                </div>
+                <div class="input-group">
+                    <label for="isp">Specific Impulse (s)</label>
+                    <input type="number" id="isp" value="300" min="100" max="500">
+                </div>
+            </div>
+
+            <button class="btn" onclick="calculateOrbit()">Calculate Mission</button>
+            <button class="btn" onclick="animateOrbit()" style="background: linear-gradient(45deg, #ff6b6b, #ee5a5a);">Animate Orbit</button>
+        </div>
+
+        <div class="visualization">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Calculating orbital mechanics...
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="orbitCanvas" width="800" height="500"></canvas>
+            </div>
+
+            <div class="results" id="results">
+                <div class="result-item">
+                    <span class="result-label">Orbital Velocity:</span>
+                    <span class="result-value" id="velocity">-- km/s</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Orbital Period:</span>
+                    <span class="result-value" id="period">-- minutes</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Delta-V Required:</span>
+                    <span class="result-value" id="deltaV">-- m/s</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Fuel Mass:</span>
+                    <span class="result-value" id="fuelMass">-- kg</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Mission Duration:</span>
+                    <span class="result-value" id="duration">-- days</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Physical constants
+        const CONSTANTS = {
+            earth: { radius: 6371, mu: 398600.4418, color: '#4a90e2' },
+            mars: { radius: 3390, mu: 42828.375, color: '#e74c3c' },
+            moon: { radius: 1737, mu: 4902.8, color: '#bdc3c7' },
+            sun: { radius: 695700, mu: 132712440018, color: '#f1c40f' }
+        };
+
+        let canvas, ctx;
+        let animationId = null;
+        let orbitData = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('orbitCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set actual canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            createStars();
+            drawInitialView();
+            
+            // Handle canvas resize
+            window.addEventListener('resize', function() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                if (orbitData.altitude) {
+                    drawOrbit();
+                }
+            });
+        });
+
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function drawInitialView() {
+            ctx.fillStyle = '#000011';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw central body (Earth by default)
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const earthRadius = 50;
+            
+            // Earth
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, earthRadius);
+            gradient.addColorStop(0, '#4a90e2');
+            gradient.addColorStop(0.7, '#2980b9');
+            gradient.addColorStop(1, '#1a5490');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, earthRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Earth glow
+            ctx.shadowColor = '#4a90e2';
+            ctx.shadowBlur = 20;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Add some stars in background
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 1.5;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        function calculateOrbit() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            setTimeout(() => {
+                const centralBody = document.getElementById('centralBody').value;
+                const altitude = parseFloat(document.getElementById('altitude').value);
+                const inclination = parseFloat(document.getElementById('inclination').value);
+                const eccentricity = parseFloat(document.getElementById('eccentricity').value);
+                const mass = parseFloat(document.getElementById('mass').value);
+                const thrust = parseFloat(document.getElementById('thrust').value);
+                const isp = parseFloat(document.getElementById('isp').value);
+                
+                const body = CONSTANTS[centralBody];
+                const r = body.radius + altitude; // km
+                
+                // Calculate orbital velocity
+                const velocity = Math.sqrt(body.mu / r); // km/s
+                
+                // Calculate orbital period
+                const period = 2 * Math.PI * Math.sqrt(Math.pow(r, 3) / body.mu) / 60; // minutes
+                
+                // Calculate delta-V for orbit insertion
+                const deltaV = Math.sqrt(body.mu / body.radius) * (Math.sqrt(2 * r / (body.radius + r)) - 1) * 1000; // m/s
+                
+                // Calculate fuel mass using rocket equation
+                const g0 = 9.81; // m/s²
+                const fuelMass = mass * (Math.exp(deltaV / (isp * g0)) - 1); // kg
+                
+                // Estimate mission duration based on orbit type
+                const missionType = document.getElementById('missionType').value;
+                let duration;
+                switch(missionType) {
+                    case 'leo': duration = 90; break;
+                    case 'geo': duration = 365; break;
+                    case 'lunar': duration = 14; break;
+                    case 'interplanetary': duration = 500; break;
+                    default: duration = 180;
+                }
+                
+                // Store orbit data
+                orbitData = {
+                    centralBody,
+                    altitude,
+                    inclination,
+                    eccentricity,
+                    velocity: velocity.toFixed(2),
+                    period: period.toFixed(1),
+                    deltaV: deltaV.toFixed(0),
+                    fuelMass: fuelMass.toFixed(0),
+                    duration,
+                    r
+                };
+                
+                // Update results
+                document.getElementById('velocity').textContent = velocity.toFixed(2) + ' km/s';
+                document.getElementById('period').textContent = period.toFixed(1) + ' minutes';
+                document.getElementById('deltaV').textContent = deltaV.toFixed(0) + ' m/s';
+                document.getElementById('fuelMass').textContent = fuelMass.toFixed(0) + ' kg';
+                document.getElementById('duration').textContent = duration + ' days';
+                
+                loading.style.display = 'none';
+                drawOrbit();
+            }, 1500);
+        }
+
+        function drawOrbit() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Background
+            ctx.fillStyle = '#000011';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const body = CONSTANTS[orbitData.centralBody];
+            
+            // Scale calculation
+            const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+            const bodyRadius = maxRadius * 0.2;
+            const orbitRadius = maxRadius * 0.8;
+            
+            // Draw central body
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, bodyRadius);
+            gradient.addColorStop(0, body.color);
+            gradient.addColorStop(0.7, adjustColor(body.color, -30));
+            gradient.addColorStop(1, adjustColor(body.color, -60));
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, bodyRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Body glow
+            ctx.shadowColor = body.color;
+            ctx.shadowBlur = 15;
+            ctx.strokeStyle = body.color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Draw orbit
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            
+            if (orbitData.eccentricity < 0.1) {
+                // Circular orbit
+                ctx.arc(centerX, centerY, orbitRadius, 0, 2 * Math.PI);
+            } else {
+                // Elliptical orbit
+                const a = orbitRadius;
+                const b = orbitRadius * Math.sqrt(1 - orbitData.eccentricity * orbitData.eccentricity);
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.scale(1, b/a);
+                ctx.arc(0, 0, a, 0, 2 * Math.PI);
+                ctx.restore();
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw spacecraft
+            const spacecraftAngle = Date.now() * 0.001;
+            const spacecraftX = centerX + orbitRadius * Math.cos(spacecraftAngle);
+            const spacecraftY = centerY + orbitRadius * Math.sin(spacecraftAngle);
+            
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(spacecraftX, spacecraftY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Spacecraft glow
+            ctx.shadowColor = '#ff6b6b';
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Draw trajectory trail
+            ctx.strokeStyle = 'rgba(255, 107, 107, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 50; i++) {
+                const trailAngle = spacecraftAngle - i * 0.1;
+                const trailX = centerX + orbitRadius * Math.cos(trailAngle);
+                const trailY = centerY + orbitRadius * Math.sin(trailAngle);
+                if (i === 0) ctx.moveTo(trailX, trailY);
+                else ctx.lineTo(trailX, trailY);
+            }
+            ctx.stroke();
+            
+            // Add stars
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 30; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 1.5;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Draw orbit info
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = '14px Arial';
+            ctx.fillText(`Altitude: ${orbitData.altitude} km`, 20, 30);
+            ctx.fillText(`Velocity: ${orbitData.velocity} km/s`, 20, 50);
+            ctx.fillText(`Period: ${orbitData.period} min`, 20, 70);
+        }
+
+        function animateOrbit() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                return;
+            }
+            
+            if (!orbitData.altitude) {
+                alert('Please calculate orbit first!');
+                return;
+            }
+            
+            function animate() {
+                drawOrbit();
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+
+        function adjustColor(color, amount) {
+            const usePound = color[0] === '#';
+            const col = usePound ? color.slice(1) : color;
+            const num = parseInt(col, 16);
+            let r = (num >> 16) + amount;
+            let g = (num >> 8 & 0x00FF) + amount;
+            let b = (num & 0x0000FF) + amount;
+            r = r > 255 ? 255 : r < 0 ? 0 : r;
+            g = g > 255 ? 255 : g < 0 ? 0 : g;
+            b = b > 255 ? 255 : b < 0 ? 0 : b;
+            return (usePound ? '#' : '') + String('000000' + (r << 16 | g << 8 | b).toString(16)).slice(-6);
+        }
+
+        // Handle mission type changes
+        document.getElementById('missionType').addEventListener('change', function() {
+            const missionType = this.value;
+            const altitudeInput = document.getElementById('altitude');
+            const inclinationInput = document.getElementById('inclination');
+            
+            switch(missionType) {
+                case 'leo':
+                    altitudeInput.value = 400;
+                    inclinationInput.value = 51.6;
+                    break;
+                case 'geo':
+                    altitudeInput.value = 35786;
+                    inclinationInput.value = 0;
+                    break;
+                case 'lunar':
+                    altitudeInput.value = 384400;
+                    inclinationInput.value = 5.1;
+                    break;
+                case 'interplanetary':
+                    altitudeInput.value = 1000000;
+                    inclinationInput.value = 0;
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
